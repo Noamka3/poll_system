@@ -10,10 +10,11 @@ const createPoll = async(question,created_by,options) =>{
     try{
         await client.query("BEGIN"); //כמו עם החשבון שלמדנו בכיתה אם ירד מחשבון A ונוסף לחשבון B
         const pollResult = await client.query(
-            "INSERT INTO polls (question,created_by) VALUES ($1,$2) RETURNING id", // SQL Injection הגנה מפני
+            "INSERT INTO polls (question,created_by) VALUES ($1,$2) RETURNING *", // SQL Injection הגנה מפני
             [question,created_by]
         );
-        const pollId = pollResult.rows[0].id; 
+        const poll = pollResult.rows[0]; // ← שומרים את כל האובייקט
+        const pollId = poll.id;    
 
     //Options הכנסת האפשרויות
     for(const option of options){
@@ -59,6 +60,9 @@ const vote = async(pollId,optionId,username) => {
         "SELECT * FROM poll_options WHERE id = $1 AND poll_id = $2", //בדיקה שהאופציה קיימת ושייכת לסקר
         [optionId,pollId]
     );
+    if (optionCheck.rows.length > 0) {
+        throw { status: 409, message: "User has already voted in this poll" };
+    }
 
     if (optionCheck.rows.length === 0) {
         throw { status: 400, message: "Option does not belong to this poll" };
@@ -107,4 +111,5 @@ module.exports = {
     createPoll,
     getPollById,
     vote,
+    getPollResults,
 };
