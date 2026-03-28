@@ -1,0 +1,25 @@
+.poll-page-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.poll-page-creator {
+  color: #666;
+  margin-bottom: 32px;
+  font-size: 0.9rem;
+}
+
+.option-card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.option-card:hover {
+  border-color: #555;
+}
