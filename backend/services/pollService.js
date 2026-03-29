@@ -60,13 +60,22 @@ const vote = async(pollId,optionId,username) => {
         "SELECT * FROM poll_options WHERE id = $1 AND poll_id = $2", //בדיקה שהאופציה קיימת ושייכת לסקר
         [optionId,pollId]
     );
-    if (optionCheck.rows.length > 0) {
-        throw { status: 409, message: "User has already voted in this poll" };
-    }
 
     if (optionCheck.rows.length === 0) {
-        throw { status: 400, message: "Option does not belong to this poll" };
+        const err = new Error("Option does not belong to this poll");
+        err.status = 400;
+        throw err;
     }
+    const existingVote = await pool.query(
+    "SELECT * FROM votes WHERE poll_id = $1 AND username = $2",
+    [pollId, username]
+  );
+    if (existingVote.rows.length > 0) {
+        const err = new Error("User has already voted in this poll");
+        err.status = 409;
+        throw err;
+    }
+
 
     await pool.query(
         "INSERT INTO votes (poll_id, option_id, username) VALUES ($1, $2, $3)",
@@ -77,7 +86,7 @@ const vote = async(pollId,optionId,username) => {
 
 const getPollResults = async(pollId) => {
     const result = await pool.query(
-    `SELECT po.option_text,COUNT(v.id)::int AS vote_count
+    `SELECT po.id, po.option_text, COUNT(v.id)::int AS vote_count
      FROM poll_options po
      LEFT JOIN votes v ON v.option_id = po.id
      WHERE po.poll_id = $1
